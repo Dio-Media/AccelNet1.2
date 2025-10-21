@@ -12,7 +12,7 @@ function ExhibitReport() {
 
   useEffect(() => {
     fetchExhibitsData();
-  }, []);
+  }, [fetchExhibitsData]);
 
   const fetchExhibitsData = async () => {
     try {
