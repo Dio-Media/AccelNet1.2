@@ -27,6 +27,7 @@ import Login from "./components/login";
 import Signup from "./components/signup";
 import ThanksForOrder from "./pages/thanksForOrder";
 import ComplaintConfirmed from "./pages/complaintConfirmed";
+import NewHome from "./pages/NewHome";
 
 function App() {
   const [userRole, setUserRole] = useState(null);
@@ -88,7 +89,7 @@ function App() {
     
     <Router>
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<NewHome />} />
         <Route path="/complaints" element={<Complaints />} />
         <Route path="/dining" element={<Dining />} />
         <Route path="/tickets" element={<Tickets />} />

@@ -8,7 +8,7 @@ export default function ThreeJSPage() {
 
   useEffect(() => {
     const container = containerRef.current;
-    const renderer = new THREE.WebGLRenderer({ alpha: true });
+    const renderer = new THREE.WebGLRenderer({ alpha: true, failIfMajorPerformanceCaveat: false, powerPreference: 'high-performance' });
     if (container) {
       renderer.setSize(container.clientWidth, container.clientHeight);
       container.appendChild(renderer.domElement);

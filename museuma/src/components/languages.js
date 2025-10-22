@@ -7,7 +7,7 @@ function Languages() {
   const [visible, setVisible] = useState(true);
 
   useEffect(() => {
-    const languages = ['स्वागतम्‌', 'ברוך הבא', 'καλως', 'مرحباً', '歡迎', 'እንኳን', 'Welcome'];
+    const languages = ['Bienvenida', 'Välkommen', '欢迎欢迎', '환영합니다', 'Bem-vindo', '환영합니다', 'Welcome'];
     let i = 0;
     const intervalId = setInterval(() => {
       setFade(false);
@@ -24,7 +24,7 @@ function Languages() {
   }, []);
 
   return (
-    <h1 className={`text-10xl text-[#313639] -mb-24 ${fade ? 'fade' : 'fade-out'}`} style={{ visibility: visible ? 'visible' : 'hidden' }}>{language}</h1>
+    <h1 className={`text-9xl text-[#313639] -mb-24 ${fade ? 'fade' : 'fade-out'}`} style={{ visibility: visible ? 'visible' : 'hidden' }}>{language}</h1>
   );
 }
 
