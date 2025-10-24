@@ -4,7 +4,6 @@ import Cookies from "js-cookie";
 
 import "./App.css";
 import "./index.css";
-import Home from "./pages/Home";
 import Dining from "./pages/dining";
 import Complaints from "./pages/complaints";
 import Artworks from "./pages/artworks";
