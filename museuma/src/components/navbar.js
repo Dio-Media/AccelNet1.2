@@ -1,403 +1,115 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
-import { HiArchiveBox } from "react-icons/hi2";
-import Cookies from "js-cookie";
+import React, { useState } from 'react';
 
-export default function NavBar() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [isPopupOpen, setIsPopupOpen] = useState(false);
-  const [userFirstName, setUserFirstName] = useState("");
-  const [userRole, setUserRole] = useState("");
-  const [employeeDepartment, setEmployeeDepartment] = useState("");
-  const [hasUnresolvedMessages, setHasUnresolvedMessages] = useState(false);
-  const [queue, setQueue] = useState([]);
-  const [cartQuantity, setCartQuantity] = useState(0);
-
-  useEffect(() => {
-    const updateCartQuantity = () => {
-      const cart = JSON.parse(localStorage.getItem('cart')) || [];
-      const quantity = cart.reduce((total, item) => total + item.quantity, 0);
-      setCartQuantity(quantity);
-    };
-
-    // Update the cart quantity when the component mounts
-    updateCartQuantity();
-
-    // Update the cart quantity whenever the localStorage changes
-    window.addEventListener('storage', updateCartQuantity);
-
-    // Clean up the event listener when the component unmounts
-    return () => {
-      window.removeEventListener('storage', updateCartQuantity);
-    };
-  }, []);
-
-  // Create a context for the cart
-  const CartContext = createContext();
-
-  // Create a provider component for the cart context
-  const CartProvider = ({ children }) => {
-    const [cartQuantity, setCartQuantity] = useState(0);
-
-    useEffect(() => {
-      const cart = JSON.parse(localStorage.getItem('cart')) || [];
-      const quantity = cart.reduce((total, item) => total + item.quantity, 0);
-      setCartQuantity(quantity);
-    }, []);
-
-    const value = {
-      cartQuantity,
-      setCartQuantity,
-    };
-
-    return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
-  };
-
-  // Create a hook to use the cart context
-  const useCart = () => {
-    const context = useContext(CartContext);
-    if (!context) {
-      throw new Error('useCart must be used within a CartProvider');
-    }
-    return context;
-  };
-
-  const decodeToken = async (token) => {
-    try {
-      const response = await fetch("https://museuma.onrender.com/decodeToken", {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ token }),
-      });
-      if (response.ok) {
-        const decodedToken = await response.json();
-        const { user_id, table_name } = decodedToken;
-
-        // Log the values for verification
-        console.log("User ID:", user_id);
-        console.log("Table Name:", table_name);
-
-        // Return user_id and table_name
-        return { user_id, table_name };
-      } else {
-        console.error("Failed to decode token:", response.statusText);
-      }
-    } catch (error) {
-      console.error("Error decoding token:", error);
-    }
-
-    // If there's an error or response is not ok, return null or handle the error as needed
-    return null;
-  };
-
-  const getFirstName = async (user_id, table_name) => {
-    try {
-      const response = await fetch("https://museuma.onrender.com/getFirstName", {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ user_id, table_name }),
-      });
-      if (response.ok) {
-        const data = await response.json();
-        return data;
-      } else {
-        console.error("Failed to fetch first name:", response.statusText);
-        return null;
-      }
-    } catch (error) {
-      console.error("Error fetching first name:", error);
-      return null;
-    }
-  };
-
-  const getEmployeeDepartment = async (employee_id) => {
-    try {
-      const response = await fetch("https://museuma.onrender.com/employee-department", {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ employee_id }),
-      });
-      if (response.ok) {
-        const data = await response.json();
-        return data;
-      } else {
-        console.error("Failed to fetch employee department:", response.statusText);
-        return null;
-      }
-    } catch (error) {
-      console.error("Error fetching employee department:", error);
-      return null;
-    }
-  }
-
-  useEffect(() => {
-    const storedToken = Cookies.get("token");
-    if (storedToken) {
-      setIsLoggedIn(true);
-      decodeToken(storedToken).then((data) => {
-        if (data) {
-          const { user_id, table_name } = data;
-          console.log("User ID:", user_id);
-          console.log("Table Name:", table_name);
-          // Set userRole state
-          setUserRole(table_name);
-          console.log("User Role:", table_name); // Log updated userRole
-          // Call getFirstName with user_id and table_name
-          getFirstName(user_id, table_name).then((firstNameData) => {
-            if (firstNameData && firstNameData.first_name) {
-              setUserFirstName(firstNameData.first_name);
-              console.log("updated", firstNameData.first_name);
-            }
-          });
-
-          if (table_name === "employees") {
-            getEmployeeDepartment(user_id).then((departmentData) => {
-              if (departmentData && departmentData.department) {
-                setEmployeeDepartment(departmentData.department);
-                console.log("Employee Department:", departmentData.department);
-              }
-            });
-          }
-        }
-      });
-    }
-
-    // Fetch messages and check for unresolved messages
-    const fetchAndCheckMessages = async () => {
-      try {
-        const response = await fetch('https://museuma.onrender.com/admin#notifications');
-        const data = await response.json();
-        setQueue(data);
-
-        const unresolvedMessages = data.some(item => item.resolved === 0);
-        setHasUnresolvedMessages(unresolvedMessages);
-        console.log(unresolvedMessages);
-
-        // Check if there are unresolved messages to decide if popup should be open
-        if (isPopupOpen && unresolvedMessages) {
-          setIsPopupOpen(true);
-        } else if (isPopupOpen && !unresolvedMessages) {
-          setIsPopupOpen(false);
-        }
-      } catch (error) {
-        console.error("Error fetching messages:", error);
-      }
-    };
-
-
-      fetchAndCheckMessages(); // Fetch messages when the component mounts
-    
-  }, []);
-
-
-
-  const fetchMessages = async () => {
-    try {
-      const response = await fetch('https://museuma.onrender.com/admin#notifications'); // Replace with your actual API endpoint
-      const data = await response.json();
-      setQueue(data);
-    } catch (error) {
-      console.error("Error fetching messages:", error);
-    }
-  };
-
-
-
-  const handleLogout = () => {
-    Cookies.remove("token");
-    setIsLoggedIn(false);
-    setShowDropdown(false);
-    localStorage.removeItem("cart");
-  };
-
-  const togglePopup = () => {
-    setIsPopupOpen(!isPopupOpen);
-  };
-
-
-
-  const Popup = () => {
-    // Filter out messages where resolved is false
-    const resolvedMessages = queue.filter(item => item.resolved === 0);
-
-    // Check if resolvedMessages is empty
-    if (resolvedMessages.length === 0) {
-      return (
-        <div className="absolute top-16 right-0 bg-white border rounded shadow-lg p-4 w-64">
-          <p>No notifications</p>
-        </div>
-      );
-    }
-
-    return (
-      <div className="absolute top-16 right-0 bg-white border rounded shadow-lg p-4 w-64"> {/* Added w-64 for width */}
-        <ul className="text-lg"> {/* Added text-sm for smaller text */}
-          {resolvedMessages.map((item, index) => (
-            <li key={index}>{item.message}</li> // Adjust this based on your message structure
-          ))}
-        </ul>
-      </div>
-    );
-  };
-
-
-  useEffect(() => {
-    const storedToken = Cookies.get("token");
-    if (storedToken) {
-      setIsLoggedIn(true);
-    }
-  }, []);
-
+// A reusable component for navigation links with dropdowns
+function NavItem({ title, children }) {
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <header className="text-[#313639] body-font z-1 shadow">
-      <div className="w-full flex justify-between items-center pl-5 pt-5 pb-5 pr-2">
-        <div className="flex items-center">
-          <a
-            href="/"
-            className="flex title-font font-medium items-center text-gray-900 mb-4 md:mb-0"
-          >
-            <img src="/logo.svg" alt="logo" className="w-12 mx-10"></img>
-            <span className="ml-3 text-xl">Baker Museum</span>
-          </a>
-          <nav className="md:mr-auto md:ml-4 md:py-1 md:pl-4 md:border-l md:border-gray-400	flex flex-wrap items-center text-base justify-center">
-            <a href="/exhibits" className="mr-5 hover:text-gray-900">
-              Working Groups
-            </a>
-            <a href="/artworks" className="mr-5 hover:text-gray-900">
-              Artworks
-            </a>
-            <a href={isLoggedIn ? "/tickets" : "/login"} className="mr-5 hover:text-gray-900">
-              Tickets
-            </a>
-            <a href={isLoggedIn ? "/giftshop" : "/login"} className="mr-5 hover:text-gray-900">
-              Gift Shop
-            </a>
-            <a href={isLoggedIn ? "/dining" : "/login"} className="mr-5 hover:text-gray-900">
-              Dining
-            </a>
-            <a href={isLoggedIn ? "/complaints" : "/login"} className="mr-5 hover:text-gray-900">
-              Report a Problem
-            </a>
-          </nav>
-          <div className="relative">
-  {['branch_directors', 'employees'].includes(userRole) && (
-    <>
-      <HiArchiveBox className="text-2xl cursor-pointer" onClick={() => setIsPopupOpen(!isPopupOpen)} />
-      {hasUnresolvedMessages && (
-        <div className="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full"></div>
-      )}
-      {isPopupOpen && <Popup />}
-    </>
-  )}
-</div>
+    <li
+      className="relative"
+      onMouseEnter={() => setIsOpen(true)}
+      onMouseLeave={() => setIsOpen(false)}
+    >
+      <button
+        type="button"
+        className="mr-5 hover:text-gray-900 flex items-center"
+      >
+        {title}
+        {/* Simple dropdown arrow */}
+        <svg className="w-2.5 h-2.5 ml-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+            <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4"/>
+        </svg>
+      </button>
+
+      {/* Dropdown Menu */}
+      {isOpen && (
+        <div className="absolute top-full left-0 mt-2 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-20">
+          <ul className="py-1">
+            {children}
+          </ul>
         </div>
-        <div className="flex items-center">
-          {isLoggedIn ? (
-            <button className="relative inline-flex justify-center items-center mr-4 bg-[#EFEDE5] border-0 py-1 px-3 focus:outline-none hover:bg-[#DCD7C5] rounded text-base">
-              <a href="/cart">My Cart</a>
-              {cartQuantity > 0 && (
-                <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full">
-                  {cartQuantity}
-                </span>
-              )}
-            </button>
-          ) : (
-            <button className="relative inline-flex justify-center items-center mr-4 bg-gray-300 border-0 py-1 px-3 rounded text-base" disabled>
-              My Cart
-            </button>
-          )}
+      )}
+    </li>
+  );
+}
 
-          {isLoggedIn ? (
-            <div className="relative inline-block text-left">
-              <button
-                className="inline-flex justify-center items-center mr-12 bg-[#EFEDE5] border-0 py-1 px-3 focus:outline-none hover:bg-[#DCD7C5] rounded text-base ml-auto"
-                onClick={() => setShowDropdown(!showDropdown)}
-              >
-                {userFirstName || "More"}
-                {/* Dropdown arrow icon */}
-              </button>
-              {showDropdown && (
-                <div className="origin-top-right absolute right-0 mt-2 w-20 mr-12 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
-                  <div className="py-1" role="none">
-                    <a
-                      href="/profile"
-                      className="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100"
-                      role="menuitem"
-                    >
-                      Profile
-                    </a>
-                    {/* Conditionally render based on userRole */}
-                    {userRole === "branch_directors" && (
-                      <a
-                        href="/admin"
-                        className="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100"
-                        role="menuitem"
-                      >
-                        Admin
-                      </a>
-                    )}
-                    {userRole === "employees" && (
-                      <div>
-                        {employeeDepartment === "Gift Shop" && (
-                          <a
-                            href="/admin/manage-giftshop"
-                            className="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100"
-                            role="menuitem"
-                          >
-                            Manage Gift Shop
-                          </a>
-                        )}
-                        {employeeDepartment === "Restaurant" && (
-                          <a
-                            href="/admin/manage-restaurant"
-                            className="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100"
-                            role="menuitem"
-                          >
-                            Manage Restaurant
-                          </a>
-                        )}
-                        {employeeDepartment !== "Gift Shop" && employeeDepartment !== "Restaurant" && (
-                          <a
-                            href="/admin/manage-artworks"
-                            className="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100"
-                            role="menuitem"
-                          >
-                            Manage Artworks
-                          </a>
-                        )}
-                      </div>
-                    )}
+// A reusable component for individual dropdown links
+function DropdownLink({ href, children }) {
+  return (
+    <li>
+      <a
+        href={href}
+        className="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100 whitespace-nowrap"
+      >
+        {children}
+      </a>
+    </li>
+  );
+}
 
-                    <a
-                      href="/login"
-                      className="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100"
-                      role="menuitem"
-                      onClick={handleLogout}
-                    >
-                      Log Out
-                    </a>
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : (
-            <a href="/login">
-              <button
-                className="inline-flex justify-center items-center mr-12 bg-[#EFEDE5] border-0 py-1 px-3 focus:outline-none hover:bg-[#DCD7C5] rounded text-base ml-auto"
-              >
-                Log In
-                {/* Login icon */}
-              </button>
-            </a>
-          )}
 
+export default function NavBar() {
+  return (
+    <header className="text-[#313639] body-font shadow-md sticky top-0 bg-white z-10">
+      <div className="w-full flex justify-between items-center pl-5 pr-10 py-4">
+        {/* Logo and Title */}
+        <a href="/" className="flex title-font font-medium items-center text-gray-900">
+          <img src="/logo.svg" alt="AccelNet Logo" className="w-12 mx-10" />
+          <span className="ml-3 text-2xl font-semibold">AccelNet</span>
+        </a>
+
+        {/* Navigation Links */}
+        <nav className="flex flex-wrap items-center text-base">
+          <ul className="flex items-center space-x-4">
+            {/* About Dropdown */}
+            <NavItem title="About">
+              <DropdownLink href="/about/vision">Vision and Mission</DropdownLink>
+              <DropdownLink href="/about/background">Background</DropdownLink>
+              <DropdownLink href="/about/program">Scientific Program</DropdownLink>
+              <DropdownLink href="/about/structure">Structure</DropdownLink>
+              <DropdownLink href="/about/participants">Participants</DropdownLink>
+            </NavItem>
+
+            {/* Working Groups Dropdown */}
+            <NavItem title="Working Groups">
+              <DropdownLink href="/wgs/wg1">WG1: BCI & Wearables</DropdownLink>
+              <DropdownLink href="/wgs/wg2">WG2: Data & Tools</DropdownLink>
+              <DropdownLink href="/wgs/wg3">WG3: Brain Models</DropdownLink>
+              <DropdownLink href="/wgs/wg4">WG4: Science Communication</DropdownLink>
+              <DropdownLink href="/wgs/wg5">WG5: Data Standards</DropdownLink>
+            </NavItem>
+
+            {/* Events & Activities Dropdown */}
+            <NavItem title="Events & Activities">
+              <DropdownLink href="/events/annual-meeting">Annual Meeting</DropdownLink>
+              <DropdownLink href="/events/conferences">Conferences</DropdownLink>
+              <DropdownLink href="/events/workshops">Workshops</DropdownLink>
+              <DropdownLink href="/events/news">News</DropdownLink>
+            </NavItem>
+
+            {/* Resources Dropdown */}
+            <NavItem title="Resources">
+              <DropdownLink href="/resources/publications">Publications</DropdownLink>
+              <DropdownLink href="/resources/multimedia">Multimedia</DropdownLink>
+              <DropdownLink href="/resources/grants">Grants</DropdownLink>
+              <DropdownLink href="/resources/mentorship">Mentorship Program</DropdownLink>
+            </NavItem>
+            
+            {/* Single Link */}
+             <li>
+                <a href="/contact" className="mr-5 hover:text-gray-900">Contact</a>
+             </li>
+          </ul>
+        </nav>
+
+        {/* "Join Us!" Button */}
+        <div>
+          <a
+            href="/join"
+            className="inline-flex items-center bg-blue-500 text-white border-0 py-2 px-4 focus:outline-none hover:bg-blue-600 rounded-md text-base"
+          >
+            Join Us!
+          </a>
         </div>
       </div>
     </header>
