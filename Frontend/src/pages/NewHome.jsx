@@ -1,5 +1,5 @@
 import React from 'react';
-import NewsCard from '../components/NewsCard';
+import NewsSlider from '../components/NewsSlider';
 
 function NewHome() {
   return (
@@ -25,7 +25,7 @@ function NewHome() {
         <h2 className="text-3xl font-bold mb-8">Latest News</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* News cards will go here */}
-          <NewsCard />
+          <NewsSlider />
         </div>
       </section>
 
