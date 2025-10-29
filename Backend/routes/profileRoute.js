@@ -23,14 +23,6 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-module.exports = router;({ error: 'User not found' });
-        }
-        res.json(result.rows[0]);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
 router.post('/', async (req, res) => {
     const { email, title, first_name, last_name, linkedin_handle, profile_image_url, bio, roles, created_id } = req.body;
     try {
