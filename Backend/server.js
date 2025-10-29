@@ -6,6 +6,9 @@ app.get('/', (req, res) => {
     res.send('Welcome to the Home Page');
 });
 
+app.use(express.json());
+app.use('/api/profiles', profileRoute)
+
 // Include route files
 const usersRoute = require('./routes/users');
 const productsRoute = require('./routes/products');
