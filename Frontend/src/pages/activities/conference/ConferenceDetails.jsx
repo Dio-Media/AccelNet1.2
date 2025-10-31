@@ -1,6 +1,8 @@
+import React, { useState, useEffect } from 'react';
+
 export function ConferenceDetail() {
-  const [conference, setConference] = React.useState(null);
-  const [loading, setLoading] = React.useState(true);
+  const [conference, setConference] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   React.useEffect(() => {
     const id = window.location.pathname.split('/').pop();

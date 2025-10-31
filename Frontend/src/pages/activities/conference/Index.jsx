@@ -1,6 +1,8 @@
+import React, { useState, useEffect } from 'react';
+
 export function ConferencesIndex() {
-  const [conferences, setConferences] = React.useState([]);
-  const [loading, setLoading] = React.useState(true);
+  const [conferences, setConferences] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   React.useEffect(() => {
     fetch('/api/events')
