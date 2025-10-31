@@ -3,36 +3,13 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Layout from "./components/Layout";
 
 // pages
-import Home from "./pages/Home";
+import Home from "./pages/NewHome";
 import About from "./pages/About";
-import StructureIndex from "./pages/Structure/Index";
-import SteeringCommittee from "./pages/Structure/SteeringCommittee";
-import AdvisoryBoard from "./pages/Structure/AdvisoryBoard";
-import StudentNetwork from "./pages/Structure/StudentNetwork";
-import InteractiveMap from "./pages/Structure/InteractiveMap";
-import ParticipantsIndex from "./pages/Structure/Participants/Index";
-import ParticipantsByType from "./pages/Structure/Participants/ParticipantsByType";
-
-import WorkingGroupsIndex from "./pages/WorkingGroups/Index";
-import WorkingGroup from "./pages/WorkingGroups/WorkingGroup";
-
-import ActivitiesIndex from "./pages/Activities/Index";
-import ConferencesIndex from "./pages/Activities/Conferences/Index";
-import ConferenceDetail from "./pages/Activities/Conferences/ConferenceDetail";
-import WorkshopsIndex from "./pages/Activities/Workshops/Index";
-import WorkshopDetail from "./pages/Activities/Workshops/WorkshopDetail";
-
-import PublicationsIndex from "./pages/Publications/Index";
-import Datasets from "./pages/Publications/Datasets";
-import Journals from "./pages/Publications/Journals";
-
-import Tools from "./pages/Programs/Tools";
-import Multimedia from "./pages/Programs/Multimedia";
-import Grants from "./pages/Programs/Grants";
-import STSM from "./pages/Programs/STSM";
-import Mentorship from "./pages/Programs/Mentorship";
-
-import NewsIndex from "./pages/News/Index";
+import StructureIndex from "./pages/structure/StructureIndex";
+import SteeringCommittee from "./pages/structure/SteeringCommittee";
+import AdvisoryBoard from "./pages/structure/AdvisoryBoard";
+import StudentNetwork from "./pages/structure/StudentNetwork";
+import InteractiveMap from "./pages/structure/InteractiveMap";
 
 export default function App() {
   return (
