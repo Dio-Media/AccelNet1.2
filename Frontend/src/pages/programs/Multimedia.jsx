@@ -1,18 +1,14 @@
-export function Multimedia() {
-  const [media, setMedia] = React.useState([]);
-  const [loading, setLoading] = React.useState(true);
+import { useEffect, useState } from "react";
 
-  React.useEffect(() => {
-    fetch('/api/multimedia')
-      .then(response => response.json())
-      .then(data => {
-        setMedia(data);
-        setLoading(false);
-      })
-      .catch(error => {
-        console.error('Error fetching multimedia:', error);
-        setLoading(false);
-      });
+export default function Multimedia() {
+  const [media, setMedia] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/multimedia")
+      .then((r) => r.json())
+      .then((data) => { setMedia(data || []); setLoading(false); })
+      .catch((err) => { console.error("Error fetching multimedia:", err); setLoading(false); });
   }, []);
 
   return (
@@ -22,7 +18,7 @@ export function Multimedia() {
         <p>Loading multimedia...</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {media.map(item => (
+          {media.map((item) => (
             <div key={item.media_id} className="bg-white rounded-lg shadow overflow-hidden">
               {item.thumbnail_url && (
                 <img src={item.thumbnail_url} alt={item.title} className="w-full h-48 object-cover" />
